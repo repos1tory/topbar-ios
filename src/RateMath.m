@@ -15,6 +15,6 @@ double BRWattsFromReadings(BRReadings readings) {
 
 NSString *BRFormatRate(double watts) {
     if (!isfinite(watts)) return @"--";
-    if (fabs(watts) < 0.05) return @"0";
-    return [NSString stringWithFormat:@"%+.1f", watts];
+    if (fabs(watts) < 0.05) return @"0W";
+    return [NSString stringWithFormat:@"%+.1fW", watts];
 }

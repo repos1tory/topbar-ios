@@ -8,6 +8,7 @@ THEOS="${THEOS:-/var/jb/var/mobile/theos}"
 rm -rf "$BUILD"
 mkdir -p "$BUILD"
 cp -R "$ROOT/." "$BUILD/"
+rm -rf "$BUILD/packages" "$BUILD/.git" "$BUILD/.theos"
 chmod -R u+rwX,go+rX "$BUILD"
 umask 022
 export THEOS

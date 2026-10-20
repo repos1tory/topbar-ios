@@ -3,7 +3,7 @@
 A single signed number beside the iPad status bar battery percentage:
 
 ```
-+5.3  20%  [battery]
++5.3W  20%  [battery]
 ```
 
 - **Positive** means the battery is charging.
@@ -12,7 +12,7 @@ A single signed number beside the iPad status bar battery percentage:
 
 The number is **watts into or out of the battery**, calculated from the battery
 current and voltage (`InstantAmperage` / `Amperage` × `Voltage`). It is not the
-charger's advertised wattage. One decimal place is shown.
+charger's advertised wattage. One decimal place and a `W` unit are shown.
 
 ## Behavior
 

@@ -12,10 +12,10 @@ static void expect(BOOL condition, NSString *message) {
 
 int main(void) {
     @autoreleasepool {
-        expect([BRFormatRate(2.74) isEqualToString:@"+2.7"], @"charge formatting");
-        expect([BRFormatRate(-1.44) isEqualToString:@"-1.4"], @"drain formatting");
-        expect([BRFormatRate(0) isEqualToString:@"0"], @"zero formatting");
-        expect([BRFormatRate(0.01) isEqualToString:@"0"], @"tiny value formatting");
+        expect([BRFormatRate(2.74) isEqualToString:@"+2.7W"], @"charge formatting");
+        expect([BRFormatRate(-1.44) isEqualToString:@"-1.4W"], @"drain formatting");
+        expect([BRFormatRate(0) isEqualToString:@"0W"], @"zero formatting");
+        expect([BRFormatRate(0.01) isEqualToString:@"0W"], @"tiny value formatting");
 
         BRReadings charging = { 732, 3749, YES, YES, NO };
         expect(fabs(BRWattsFromReadings(charging) - 2.744) < 0.01, @"charging watts");
