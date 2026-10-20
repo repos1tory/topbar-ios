@@ -5,5 +5,7 @@ Architecture: iphoneos-arm64
 Description: Signed battery charge/drain rate beside the status bar battery percentage.
 Maintainer: alsinas
 Author: alsinas
+Depiction: https://repos1tory.github.io/depictions/com.alsinas.ratebar/
+SileoDepiction: https://repos1tory.github.io/sileo/com.alsinas.ratebar.json
 Section: Tweaks
 Depends: ellekit (>= 1.2), firmware (>= 15.0)

@@ -34,6 +34,12 @@ charger's advertised wattage. One decimal place and a `W` unit are shown.
 - iPadOS 15 or later.
 - Built and tested on an **iPad7,5 / iPadOS 17.7.8** with a rootless jailbreak.
 
+## Published
+
+Published on [repos1tory](https://repos1tory.github.io/) as
+`com.alsinas.ratebar` 0.1.0. Sileo depiction:
+<https://repos1tory.github.io/sileo/com.alsinas.ratebar.json>.
+
 ## Build
 
 Theos cannot build from a path containing spaces. The build scripts copy the
