@@ -1,18 +1,26 @@
 # RateBar
 
-A single signed number beside the iPad status bar battery percentage:
+A single signed number and an estimated time beside the iPad status bar battery
+percentage:
 
 ```
-+5.3W  20%  [battery]
++6.2W 3h30m   26%   [battery]
+-3.1W 1h07m   12%   [battery]
 ```
 
 - **Positive** means the battery is charging.
 - **Negative** means the battery is draining.
-- **0** means the battery is full on AC or the current is below the display threshold.
+- **0W** means the battery is full on AC or the current is below the display threshold.
+- The time is **until full** when charging and **until empty** when draining.
+- The time is omitted when it is not meaningful or not available.
 
 The number is **watts into or out of the battery**, calculated from the battery
 current and voltage (`InstantAmperage` / `Amperage` × `Voltage`). It is not the
 charger's advertised wattage. One decimal place and a `W` unit are shown.
+
+The sign follows the actual battery current, so a plugged-in iPad can still show
+a negative number when the screen/CPU are using more power than the charger
+supplies. That is not a bug: the battery is draining.
 
 ## Behavior
 
@@ -23,10 +31,22 @@ charger's advertised wattage. One decimal place and a `W` unit are shown.
 - Sits immediately left of the stock battery percentage.
 - To make room on iPad, the status icons immediately left of the battery
   percentage (Wi-Fi, rotation lock, Focus, etc.) are shifted left by the width
-  of the number. They are restored if the label hides. This is a small layout
-  adjustment, not a replacement of the stock status bar.
+  of the rate and time. They are restored if the label hides. This is a small
+  layout adjustment, not a replacement of the stock status bar.
 - iPad only in this version. On iPhone the label is not shown because the
   status bar is too tight to make room without covering stock items.
+
+## Time estimates
+
+- **Draining:** uses iOS's own `TimeRemaining` estimate when available, then
+  falls back to remaining mAh ÷ current.
+- **Charging:** remaining mAh ÷ current charge current. It updates as the charge
+  rate tapers, so the number can get longer as the battery fills.
+- When the iPad is plugged in but the load exceeds the charger, the watts are
+  negative and the time shown is **time to empty**, because the battery really
+  is draining.
+- These are estimates, not promises. A heavy app, brightness change, or thermal
+  throttle can move the drain estimate quickly.
 
 ## Compatibility
 
@@ -37,7 +57,7 @@ charger's advertised wattage. One decimal place and a `W` unit are shown.
 ## Published
 
 Published on [repos1tory](https://repos1tory.github.io/) as
-`com.alsinas.ratebar` 0.1.0. Sileo depiction:
+`com.alsinas.ratebar` 0.2.0. Sileo depiction:
 <https://repos1tory.github.io/sileo/com.alsinas.ratebar.json>.
 
 ## Build
@@ -78,7 +98,8 @@ prints debug layout data. Debug builds write to
 ./tests/run.sh
 ```
 
-The tests cover the sign convention, zero/full handling, and formatting.
+The tests cover the sign convention, zero/full handling, duration formatting,
+and time-to-full/time-to-empty math.
 
 ## Limits
 

@@ -129,7 +129,8 @@ static NSString *BRDescribeView(UIView *view, UIView *host) {
     NSString *extra = @"";
     if ([view isKindOfClass:[UILabel class]]) {
         UILabel *label = (UILabel *)view;
-        extra = [NSString stringWithFormat:@" text=%@", label.text ?: @"(nil)"];
+        NSString *text = label.attributedText.string ?: label.text;
+        extra = [NSString stringWithFormat:@" text=%@", text ?: @"(nil)"];
     } else if ([view isKindOfClass:[UIImageView class]]) {
         UIImageView *imageView = (UIImageView *)view;
         extra = [NSString stringWithFormat:@" image=%@ aid=%@ aLabel=%@",
@@ -280,7 +281,8 @@ static void BRUpdateStatusBar(STUIStatusBar *bar) {
     CGFloat pointSize = baseFont ? baseFont.pointSize : 13.0;
     if (pointSize < 9) pointSize = 9;
     if (pointSize > 18) pointSize = 18;
-    label.font = [UIFont monospacedDigitSystemFontOfSize:pointSize weight:UIFontWeightSemibold];
+    UIFont *rateFont = [UIFont monospacedDigitSystemFontOfSize:pointSize weight:UIFontWeightSemibold];
+    label.font = rateFont;
 
     UIColor *tint = percentLabel.textColor;
     if (!tint || CGColorGetAlpha(tint.CGColor) < 0.05) tint = bar.foregroundColor;
@@ -288,12 +290,33 @@ static void BRUpdateStatusBar(STUIStatusBar *bar) {
     label.textColor = tint;
 
     BRRateSample sample = BRCachedSample();
-    label.text = sample.valid ? BRFormatRate(sample.watts) : @"--";
+    NSString *rateText = sample.valid ? BRFormatRate(sample.watts) : @"--";
+
+    NSInteger minutes = -1;
+    if (sample.valid) {
+        if (sample.watts > 0.05) {
+            minutes = sample.timeToFullMinutes;
+        } else if (sample.watts < -0.05) {
+            minutes = sample.timeToEmptyMinutes;
+        }
+    }
+    NSString *durationText = minutes > 0 ? BRFormatDuration(minutes) : nil;
+
+    NSMutableAttributedString *text = [[NSMutableAttributedString alloc] initWithString:rateText
+        attributes:@{ NSFontAttributeName: rateFont, NSForegroundColorAttributeName: tint }];
+    if (durationText.length > 0) {
+        UIFont *timeFont = [UIFont monospacedDigitSystemFontOfSize:MAX(9.0, pointSize - 1.5)
+                                                             weight:UIFontWeightRegular];
+        NSDictionary *timeAttributes = @{ NSFontAttributeName: timeFont, NSForegroundColorAttributeName: tint };
+        [text appendAttributedString:[[NSAttributedString alloc] initWithString:@" " attributes:timeAttributes]];
+        [text appendAttributedString:[[NSAttributedString alloc] initWithString:durationText attributes:timeAttributes]];
+    }
+    label.attributedText = text;
     [label sizeToFit];
     label.frame = CGRectMake(label.frame.origin.x,
                              label.frame.origin.y,
                              ceil(label.frame.size.width),
-                             ceil(label.font.lineHeight));
+                             ceil(rateFont.lineHeight));
 
     CGFloat anchorX = CGRectGetMinX(batteryRect);
     if (!CGRectIsNull(percentRect)) anchorX = MIN(anchorX, CGRectGetMinX(percentRect));
@@ -326,7 +349,7 @@ static void BRUpdateStatusBar(STUIStatusBar *bar) {
                     percentLabel ? BRDescribeView(percentLabel, host) : @"(none)",
                     BRDescribeView(label, host),
                     !label.hidden,
-                    label.text ?: @"(nil)"]);
+                    label.attributedText.string ?: label.text ?: @"(nil)"]);
         if (percentLabel) {
             static BOOL dumpedCluster;
             if (!dumpedCluster) {

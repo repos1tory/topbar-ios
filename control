@@ -1,8 +1,8 @@
 Package: com.alsinas.ratebar
 Name: RateBar
-Version: 0.1.0
+Version: 0.2.0
 Architecture: iphoneos-arm64
-Description: Signed battery charge/drain rate beside the status bar battery percentage.
+Description: Signed battery charge/drain rate and estimated time beside the status bar battery percentage.
 Maintainer: alsinas
 Author: alsinas
 Depiction: https://repos1tory.github.io/depictions/com.alsinas.ratebar/
