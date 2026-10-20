@@ -27,12 +27,14 @@ supplies. That is not a bug: the battery is draining.
 - Reads `IOPMPowerSource` through IOKit in SpringBoard. Read-only; it never
   changes charging or power state.
 - Updates every 2 seconds and on power-source notifications.
-- Uses the stock battery percentage's font size and adaptive text colour.
+- Uses the stock battery percentage's font, size, weight and adaptive text
+  colour. Digits are made tabular so the number does not jitter.
 - Sits immediately left of the stock battery percentage.
 - To make room on iPad, the status icons immediately left of the battery
-  percentage (Wi-Fi, rotation lock, Focus, etc.) are shifted left by the width
-  of the rate and time. They are restored if the label hides. This is a small
-  layout adjustment, not a replacement of the stock status bar.
+  percentage (Wi-Fi, rotation lock, Focus, etc.) are shifted left by the exact
+  width of the rate and time. The shift is recalculated when the text changes or
+  when an icon appears/disappears. They are restored if the label hides. This is
+  a small layout adjustment, not a replacement of the stock status bar.
 - iPad only in this version. On iPhone the label is not shown because the
   status bar is too tight to make room without covering stock items.
 
@@ -57,7 +59,7 @@ supplies. That is not a bug: the battery is draining.
 ## Published
 
 Published on [repos1tory](https://repos1tory.github.io/) as
-`com.alsinas.ratebar` 0.2.0. Sileo depiction:
+`com.alsinas.ratebar` 0.2.1. Sileo depiction:
 <https://repos1tory.github.io/sileo/com.alsinas.ratebar.json>.
 
 ## Build

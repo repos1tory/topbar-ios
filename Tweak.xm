@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <CoreText/CoreText.h>
 #import <notify.h>
 #import <objc/runtime.h>
 
@@ -159,6 +160,7 @@ static void BRDumpRightCluster(UIView *view, UIView *host, NSMutableArray<NSStri
 
 
 static const void *kOriginalXKey = &kOriginalXKey;
+static CGFloat BRLastShift = 0;
 
 static void BRMakeRoomForRateLabel(UILabel *label, UIView *anchorView, UIView *batteryView) {
     if ([UIDevice currentDevice].userInterfaceIdiom != UIUserInterfaceIdiomPad) return;
@@ -167,10 +169,6 @@ static void BRMakeRoomForRateLabel(UILabel *label, UIView *anchorView, UIView *b
     UIView *container = anchorView.superview;
     if (!container) return;
 
-    static CGSize lastHostSize;
-    static NSUInteger lastPrefixCount;
-    UIView *host = container.superview ?: container;
-    CGSize hostSize = host.bounds.size;
     CGFloat anchorMinX = CGRectGetMinX(anchorView.frame);
 
     NSMutableArray<UIView *> *prefixViews = [NSMutableArray array];
@@ -183,20 +181,20 @@ static void BRMakeRoomForRateLabel(UILabel *label, UIView *anchorView, UIView *b
         }
     }
 
-    if (!CGSizeEqualToSize(lastHostSize, hostSize) || prefixViews.count != lastPrefixCount) {
-        for (UIView *sibling in container.subviews) {
-            objc_setAssociatedObject(sibling, kOriginalXKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        lastHostSize = hostSize;
-        lastPrefixCount = prefixViews.count;
-    }
-
     CGRect labelInContainer = [label convertRect:label.bounds toView:container];
     CGFloat rightmostPrefixMaxX = -CGFLOAT_MAX;
+
+    // Keep the unshifted x for each icon. If the status bar relaid out the icon
+    // (for example because Focus or Wi-Fi appeared), treat its current x as the
+    // new unshifted value instead of accumulating an old shift.
     for (UIView *sibling in prefixViews) {
+        CGRect rect = sibling.frame;
         NSNumber *original = objc_getAssociatedObject(sibling, kOriginalXKey);
-        CGFloat x = original ? original.doubleValue : CGRectGetMinX(sibling.frame);
-        rightmostPrefixMaxX = MAX(rightmostPrefixMaxX, x + CGRectGetWidth(sibling.frame));
+        if (!original || fabs(rect.origin.x - (original.doubleValue - BRLastShift)) > 0.75) {
+            original = @(rect.origin.x);
+            objc_setAssociatedObject(sibling, kOriginalXKey, original, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        rightmostPrefixMaxX = MAX(rightmostPrefixMaxX, original.doubleValue + CGRectGetWidth(rect));
     }
 
     CGFloat shift = 0;
@@ -206,17 +204,15 @@ static void BRMakeRoomForRateLabel(UILabel *label, UIView *anchorView, UIView *b
     if (shift < 0) shift = 0;
 
     for (UIView *sibling in prefixViews) {
-        CGRect rect = sibling.frame;
         NSNumber *original = objc_getAssociatedObject(sibling, kOriginalXKey);
-        if (!original) {
-            original = @(rect.origin.x);
-            objc_setAssociatedObject(sibling, kOriginalXKey, original, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
+        if (!original) continue;
+        CGRect rect = sibling.frame;
         CGFloat targetX = original.doubleValue - shift;
         if (fabs(rect.origin.x - targetX) > 0.1) {
             sibling.frame = CGRectMake(targetX, rect.origin.y, rect.size.width, rect.size.height);
         }
     }
+    BRLastShift = shift;
 }
 
 static void BRRestoreShiftedIcons(UIView *anchorView) {
@@ -226,11 +222,12 @@ static void BRRestoreShiftedIcons(UIView *anchorView) {
         NSNumber *original = objc_getAssociatedObject(sibling, kOriginalXKey);
         if (!original) continue;
         CGRect rect = sibling.frame;
-        if (fabs(rect.origin.x - original.doubleValue) > 0.1) {
+        if (fabs(rect.origin.x - (original.doubleValue - BRLastShift)) <= 0.75) {
             sibling.frame = CGRectMake(original.doubleValue, rect.origin.y, rect.size.width, rect.size.height);
         }
         objc_setAssociatedObject(sibling, kOriginalXKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
+    BRLastShift = 0;
 }
 
 static void BRUpdateStatusBar(STUIStatusBar *bar) {
@@ -278,10 +275,18 @@ static void BRUpdateStatusBar(STUIStatusBar *bar) {
     }
 
     UIFont *baseFont = percentLabel.font;
-    CGFloat pointSize = baseFont ? baseFont.pointSize : 13.0;
-    if (pointSize < 9) pointSize = 9;
-    if (pointSize > 18) pointSize = 18;
-    UIFont *rateFont = [UIFont monospacedDigitSystemFontOfSize:pointSize weight:UIFontWeightSemibold];
+    if (!baseFont || baseFont.pointSize < 8) {
+        baseFont = [UIFont systemFontOfSize:13.0 weight:UIFontWeightRegular];
+    }
+    UIFontDescriptor *descriptor = baseFont.fontDescriptor;
+    UIFontDescriptor *tabularDescriptor = [descriptor fontDescriptorByAddingAttributes:@{
+        UIFontDescriptorFeatureSettingsAttribute: @[
+            @{ UIFontFeatureTypeIdentifierKey: @(kNumberSpacingType),
+               UIFontFeatureSelectorIdentifierKey: @(kMonospacedNumbersSelector) }
+        ]
+    }];
+    UIFont *rateFont = [UIFont fontWithDescriptor:tabularDescriptor size:baseFont.pointSize];
+    if (!rateFont) rateFont = baseFont;
     label.font = rateFont;
 
     UIColor *tint = percentLabel.textColor;
@@ -302,14 +307,12 @@ static void BRUpdateStatusBar(STUIStatusBar *bar) {
     }
     NSString *durationText = minutes > 0 ? BRFormatDuration(minutes) : nil;
 
+    NSDictionary *textAttributes = @{ NSFontAttributeName: rateFont, NSForegroundColorAttributeName: tint };
     NSMutableAttributedString *text = [[NSMutableAttributedString alloc] initWithString:rateText
-        attributes:@{ NSFontAttributeName: rateFont, NSForegroundColorAttributeName: tint }];
+        attributes:textAttributes];
     if (durationText.length > 0) {
-        UIFont *timeFont = [UIFont monospacedDigitSystemFontOfSize:MAX(9.0, pointSize - 1.5)
-                                                             weight:UIFontWeightRegular];
-        NSDictionary *timeAttributes = @{ NSFontAttributeName: timeFont, NSForegroundColorAttributeName: tint };
-        [text appendAttributedString:[[NSAttributedString alloc] initWithString:@" " attributes:timeAttributes]];
-        [text appendAttributedString:[[NSAttributedString alloc] initWithString:durationText attributes:timeAttributes]];
+        [text appendAttributedString:[[NSAttributedString alloc] initWithString:@" " attributes:textAttributes]];
+        [text appendAttributedString:[[NSAttributedString alloc] initWithString:durationText attributes:textAttributes]];
     }
     label.attributedText = text;
     [label sizeToFit];
@@ -342,14 +345,16 @@ static void BRUpdateStatusBar(STUIStatusBar *bar) {
     static NSUInteger layoutLogCount;
     if (layoutLogCount < 12) {
         layoutLogCount++;
-        BRDebugLog([NSString stringWithFormat:@"bar=%@ host=%@ battery=%@ percent=%@ label=%@ shown=%d text=%@",
+        BRDebugLog([NSString stringWithFormat:@"bar=%@ host=%@ battery=%@ percent=%@ label=%@ shown=%d text=%@ labelFont=%@/%.1f stockFont=%@/%.1f",
                     NSStringFromClass(bar.class),
                     NSStringFromClass(host.class),
                     BRDescribeView(batteryView, host),
                     percentLabel ? BRDescribeView(percentLabel, host) : @"(none)",
                     BRDescribeView(label, host),
                     !label.hidden,
-                    label.attributedText.string ?: label.text ?: @"(nil)"]);
+                    label.attributedText.string ?: label.text ?: @"(nil)",
+                    label.font.fontName ?: @"(nil)", label.font.pointSize,
+                    percentLabel.font.fontName ?: @"(nil)", percentLabel.font.pointSize]);
         if (percentLabel) {
             static BOOL dumpedCluster;
             if (!dumpedCluster) {
