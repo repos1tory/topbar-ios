@@ -32,13 +32,14 @@ cp "$BUILD"/plugins/battery/packages/com.alsinas.topbar.battery_*.deb "$ROOT/pac
 cp "$BUILD"/plugins/ip/packages/com.alsinas.topbar.ip_*.deb "$ROOT/packages/"
 
 # TopBar is the replacement host for the original single-purpose RateBar.
-sudo dpkg -r com.alsinas.ratebar com.alsinas.topbarprobe com.alsinas.prefprobe >/dev/null 2>&1 || true
+sudo dpkg -r com.alsinas.ratebar com.alsinas.topbarprobe com.alsinas.prefprobe \
+    com.alsinas.appprobe com.alsinas.appbarprobe com.alsinas.scopeprobe >/dev/null 2>&1 || true
 sudo dpkg -i --force-downgrade \
     "$BUILD"/TopBar/packages/com.alsinas.topbar_*.deb \
     "$BUILD"/plugins/battery/packages/com.alsinas.topbar.battery_*.deb \
     "$BUILD"/plugins/ip/packages/com.alsinas.topbar.ip_*.deb
 
-sudo sbreload
+sudo sbreload || sudo killall -9 SpringBoard
 sleep 8
 
 echo "--- installed"

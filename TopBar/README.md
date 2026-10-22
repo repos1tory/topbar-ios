@@ -27,12 +27,12 @@ The left-side time/date are owned by iOS and are not moved by this version.
 
 ## Scope
 
-This build is injected into **SpringBoard only**. It customizes the status bar
-owned by SpringBoard (Home Screen and other SpringBoard UI), not the status bar
-drawn inside individual apps. App status bars are rendered in their own
-processes; supporting every app requires injecting the host into those
-processes (and giving them access to the plugins), which is not part of this
-0.1.0 build.
+TopBar hooks SpringBoard's `STUIStatusBar` instances. On iPadOS the
+Home Screen and app status bars are both SpringBoard-owned `STUIStatusBar`
+instances (the app one lives in `SBMainSwitcherWindow`), so the same host
+applies in apps such as Settings and Safari as well as on the Home Screen.
+It does not modify a status bar rendered inside an app's own process; it also
+does not show in UI where iOS hides the status bar.
 
 ## Plugins
 

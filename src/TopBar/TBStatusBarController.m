@@ -87,12 +87,7 @@
 }
 
 - (void)update {
-    if (!self.bar || !self.bar.window) {
-        [self hideCustomItems];
-        return;
-    }
-    NSString *windowClass = NSStringFromClass(self.bar.window.class);
-    if (![windowClass containsString:@"SBStatusBarWindow"]) {
+    if (!self.bar || !self.bar.window || self.bar.window.hidden || self.bar.hidden || self.bar.alpha < 0.01) {
         [self hideCustomItems];
         return;
     }
