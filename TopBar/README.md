@@ -13,6 +13,11 @@ Installed packages:
   (the old RateBar item).
 - `com.alsinas.topbar.ip` — local/public IP item. Tap it to switch between
   `L:` (local) and `W:` (public).
+- Additional items: `com.alsinas.topbar.network` (↓/↑ throughput),
+  `com.alsinas.topbar.weather` (temperature + condition),
+  `com.alsinas.topbar.cpu` (CPU load), `com.alsinas.topbar.ram` (memory usage),
+  `com.alsinas.topbar.thermal` (thermal pressure), and
+  `com.alsinas.topbar.disk` (free/total storage).
 
 ## Use
 

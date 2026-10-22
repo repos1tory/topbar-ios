@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Identifier</key><string>thermal.state</string>
+    <key>Name</key><string>Thermal</string>
+    <key>Description</key><string>System thermal pressure state</string>
+    <key>Version</key><string>0.1.0</string>
+    <key>Author</key><string>alsinas</string>
+    <key>Side</key><string>right</string>
+    <key>DefaultOrder</key><integer>170</integer>
+</dict>
+</plist>

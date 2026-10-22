@@ -1,0 +1,9 @@
+Package: com.alsinas.topbar.cpu
+Name: TopBar CPU
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: System CPU load item for TopBar.
+Maintainer: alsinas
+Author: alsinas
+Section: Tweaks
+Depends: com.alsinas.topbar (>= 0.1.0), ellekit (>= 1.2), firmware (>= 15.0)
