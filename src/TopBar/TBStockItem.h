@@ -5,6 +5,7 @@
 @property (nonatomic, copy) NSString *identifier;
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, copy) NSString *detail;
+@property (nonatomic, copy) NSString *side;
 @property (nonatomic, assign) NSInteger defaultOrder;
 
 /// The catalog installed at /var/jb/Library/TopBar/StockItems.plist.
@@ -14,5 +15,7 @@
 + (NSString *)identifierForDisplayItemIdentifier:(NSString *)identifier;
 
 + (NSString *)titleForIdentifier:(NSString *)identifier;
+
++ (NSString *)sideForIdentifier:(NSString *)identifier;
 
 @end

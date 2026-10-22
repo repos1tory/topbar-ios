@@ -31,8 +31,10 @@
 
 @property (nonatomic, weak) STUIStatusBar *bar;
 @property (nonatomic, weak) UIView *host;
-@property (nonatomic, weak) UIView *regionContentView;
-@property (nonatomic, strong) NSDictionary<NSString *, NSArray<UIView *> *> *stockViews;
+@property (nonatomic, weak) UIView *leftContentView;
+@property (nonatomic, weak) UIView *rightContentView;
+@property (nonatomic, strong) NSDictionary<NSString *, NSArray<UIView *> *> *leftStockViews;
+@property (nonatomic, strong) NSDictionary<NSString *, NSArray<UIView *> *> *rightStockViews;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, UIView *> *pluginContainers;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, UILabel *> *pluginLabels;
 @property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
@@ -50,7 +52,8 @@
     self = [super init];
     if (self) {
         _bar = bar;
-        _stockViews = @{};
+        _leftStockViews = @{};
+        _rightStockViews = @{};
         _pluginContainers = [NSMutableDictionary dictionary];
         _pluginLabels = [NSMutableDictionary dictionary];
     }
@@ -63,9 +66,7 @@
     host.userInteractionEnabled = YES;
 
     if (self.tapGesture && self.tapGesture.view == host) return;
-    if (self.tapGesture) {
-        [self.tapGesture.view removeGestureRecognizer:self.tapGesture];
-    }
+    if (self.tapGesture) [self.tapGesture.view removeGestureRecognizer:self.tapGesture];
     self.host = host;
 
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
@@ -86,6 +87,23 @@
     }
 }
 
+- (STUIStatusBarRegion *)regionNamed:(NSString *)name {
+    @try {
+        return [self.bar regionWithIdentifier:name];
+    } @catch (__unused NSException *exception) {
+        return nil;
+    }
+}
+
+- (UIView *)contentViewForRegion:(STUIStatusBarRegion *)region {
+    @try {
+        UIView *view = region.contentView;
+        return [view isKindOfClass:[UIView class]] ? view : nil;
+    } @catch (__unused NSException *exception) {
+        return nil;
+    }
+}
+
 - (void)update {
     if (!self.bar || !self.bar.window || self.bar.window.hidden || self.bar.hidden || self.bar.alpha < 0.01) {
         [self hideCustomItems];
@@ -94,47 +112,51 @@
 
     [self ensureGesture];
 
-    STUIStatusBarRegion *region = nil;
-    @try {
-        region = [self.bar regionWithIdentifier:@"trailing"];
-    } @catch (__unused NSException *exception) {
-        region = nil;
+    STUIStatusBarRegion *rightRegion = [self regionNamed:@"trailing"];
+    STUIStatusBarRegion *leftRegion = [self regionNamed:@"leading"];
+    UIView *rightContent = [self contentViewForRegion:rightRegion];
+    UIView *leftContent = [self contentViewForRegion:leftRegion];
+
+    if (!leftRegion || leftRegion.displayItems.count == 0) {
+        STUIStatusBarRegion *expanded = [self regionNamed:@"expandedLeading"];
+        if (expanded.displayItems.count > 0) {
+            leftRegion = expanded;
+            leftContent = [self contentViewForRegion:expanded];
+        }
     }
-    UIView *contentView = nil;
-    @try {
-        contentView = region.contentView;
-    } @catch (__unused NSException *exception) {
-        contentView = nil;
-    }
-    if (![contentView isKindOfClass:[UIView class]]) {
+    if (!rightContent && !leftContent) {
         [self hideCustomItems];
         return;
     }
 
-    self.regionContentView = contentView;
-    contentView.userInteractionEnabled = YES;
-    contentView.clipsToBounds = NO;
+    self.leftContentView = leftContent;
+    self.rightContentView = rightContent;
+    leftContent.userInteractionEnabled = YES;
+    leftContent.clipsToBounds = NO;
+    rightContent.userInteractionEnabled = YES;
+    rightContent.clipsToBounds = NO;
 
-    if (self.logCount < 8) {
-        TBDebugLog(@"update self=%p bar=%p window=%@", self, self.bar, NSStringFromClass(self.bar.window.class));
-    }
-    [self gatherStockViewsFromRegion:region];
+    self.leftStockViews = [self gatherStockViewsFromRegion:leftRegion side:@"left"];
+    self.rightStockViews = [self gatherStockViewsFromRegion:rightRegion side:@"right"];
+
     [self syncPluginContainers];
-    [self layoutItems];
+
+    for (NSArray<UIView *> *views in self.leftStockViews.allValues) {
+        for (UIView *view in views) view.hidden = YES;
+    }
+    for (NSArray<UIView *> *views in self.rightStockViews.allValues) {
+        for (UIView *view in views) view.hidden = YES;
+    }
+    for (UIView *container in self.pluginContainers.allValues) container.hidden = YES;
+
+    if (rightContent) [self layoutSide:@"right" contentView:rightContent];
+    if (leftContent) [self layoutSide:@"left" contentView:leftContent];
 }
 
-- (void)gatherStockViewsFromRegion:(STUIStatusBarRegion *)region {
+- (NSDictionary<NSString *, NSArray<UIView *> *> *)gatherStockViewsFromRegion:(STUIStatusBarRegion *)region side:(NSString *)side {
+    if (!region) return @{};
     NSMutableDictionary<NSString *, NSMutableArray<UIView *> *> *groups = [NSMutableDictionary dictionary];
     NSOrderedSet *displayItems = region.displayItems;
-    static NSUInteger gatherLogCount;
-    if (gatherLogCount < 6) {
-        gatherLogCount++;
-        TBDebugLog(@"gather region=<%@> content=<%@> displayItems=<%@> count=%lu",
-                   NSStringFromClass([region class]),
-                   NSStringFromClass([region.contentView class]),
-                   NSStringFromClass([displayItems class]),
-                   (unsigned long)displayItems.count);
-    }
     for (STUIStatusBarDisplayItem *displayItem in displayItems) {
         NSString *identifier = nil;
         UIView *view = nil;
@@ -144,15 +166,11 @@
         } @catch (__unused NSException *exception) {
             continue;
         }
-        if (gatherLogCount <= 6) {
-            TBDebugLog(@"  displayItem %@ -> %@ %@", identifier, NSStringFromClass([view class]),
-                       [view isKindOfClass:[UIView class]] ? NSStringFromCGRect(view.frame) : @"");
-        }
         if (![view isKindOfClass:[UIView class]]) continue;
         if (view.frame.size.width < 0.5 || view.frame.size.height < 0.5) continue;
 
-        NSString *stockID = [TBStockItem identifierForDisplayItemIdentifier:
-            [identifier isKindOfClass:[NSString class]] ? identifier : [identifier description]];
+        NSString *identifierString = [identifier isKindOfClass:[NSString class]] ? identifier : [identifier description];
+        NSString *stockID = [TBStockItem identifierForDisplayItemIdentifier:identifierString];
         if (stockID.length == 0) continue;
 
         NSMutableArray<UIView *> *views = groups[stockID];
@@ -171,17 +189,31 @@
         }];
         sorted[identifier] = [views copy];
     }];
-    self.stockViews = sorted;
+#ifdef DEBUG
+    TBDebugLog(@"gather side=%@ region=%@ count=%lu stock=%@", side, NSStringFromClass(region.class),
+               (unsigned long)displayItems.count, sorted.allKeys);
+#endif
+    return sorted;
+}
+
+- (NSDictionary<NSString *, NSArray<UIView *> *> *)stockViewsForSide:(NSString *)side {
+    return [side isEqualToString:@"left"] ? self.leftStockViews : self.rightStockViews;
+}
+
+- (UIView *)contentViewForSide:(NSString *)side {
+    return [side isEqualToString:@"left"] ? self.leftContentView : self.rightContentView;
 }
 
 - (UILabel *)referenceStockLabel {
-    NSArray<UIView *> *batteryViews = self.stockViews[@"stock.battery"];
+    NSArray<UIView *> *batteryViews = self.rightStockViews[@"stock.battery"];
     for (UIView *view in batteryViews) {
         if ([view isKindOfClass:[UILabel class]]) return (UILabel *)view;
     }
-    for (NSArray<UIView *> *views in self.stockViews.allValues) {
-        for (UIView *view in views) {
-            if ([view isKindOfClass:[UILabel class]]) return (UILabel *)view;
+    for (NSDictionary<NSString *, NSArray<UIView *> *> *groups in @[self.leftStockViews ?: @{}, self.rightStockViews ?: @{}]) {
+        for (NSArray<UIView *> *views in groups.allValues) {
+            for (UIView *view in views) {
+                if ([view isKindOfClass:[UILabel class]]) return (UILabel *)view;
+            }
         }
     }
     return nil;
@@ -190,9 +222,7 @@
 - (UIFont *)statusFont {
     UILabel *stockLabel = [self referenceStockLabel];
     UIFont *baseFont = stockLabel.font;
-    if (!baseFont || baseFont.pointSize < 8) {
-        baseFont = [UIFont systemFontOfSize:12.0 weight:UIFontWeightMedium];
-    }
+    if (!baseFont || baseFont.pointSize < 8) baseFont = [UIFont systemFontOfSize:12.0 weight:UIFontWeightMedium];
     UIFontDescriptor *descriptor = baseFont.fontDescriptor;
     UIFontDescriptor *tabular = [descriptor fontDescriptorByAddingAttributes:@{
         UIFontDescriptorFeatureSettingsAttribute: @[
@@ -210,6 +240,30 @@
     if (!tint || CGColorGetAlpha(tint.CGColor) < 0.05) tint = self.bar.foregroundColor;
     if (!tint) tint = [UIColor labelColor];
     return tint;
+}
+
+- (NSString *)sideForPluginRecord:(TBPluginRecord *)record {
+    NSString *override = [TBPreferences sides][record.identifier];
+    if ([override isEqualToString:@"left"] || [override isEqualToString:@"right"]) return override;
+    if ([record.side isEqualToString:@"left"] || [record.side isEqualToString:@"right"]) return record.side;
+    return @"right";
+}
+
+- (NSString *)sideForIdentifier:(NSString *)identifier {
+    NSString *stockSide = [TBStockItem sideForIdentifier:identifier];
+    if (stockSide) {
+        if ([self.leftStockViews[identifier] count] > 0) return @"left";
+        if ([self.rightStockViews[identifier] count] > 0) return @"right";
+        return stockSide;
+    }
+    TBPluginRecord *record = nil;
+    for (TBPluginRecord *candidate in [TBPluginRegistry sharedRegistry].records) {
+        if ([candidate.identifier isEqualToString:identifier]) {
+            record = candidate;
+            break;
+        }
+    }
+    return record ? [self sideForPluginRecord:record] : @"right";
 }
 
 - (void)syncPluginContainers {
@@ -263,7 +317,7 @@
         label.textColor = [self statusColor];
         [label sizeToFit];
         container.accessibilityLabel = record.name;
-        if ([record.plugin respondsToSelector:@selector(wantsTap)] && [record.plugin wantsTap]) {
+        if (wantsTap) {
             container.accessibilityTraits = UIAccessibilityTraitButton;
             container.accessibilityHint = @"Tap to change";
         } else {
@@ -274,27 +328,39 @@
 
     for (NSString *identifier in self.pluginContainers.allKeys) {
         if ([liveIdentifiers containsObject:identifier]) continue;
-        UIView *container = self.pluginContainers[identifier];
-        [container removeFromSuperview];
+        [self.pluginContainers[identifier] removeFromSuperview];
         [self.pluginContainers removeObjectForKey:identifier];
         [self.pluginLabels removeObjectForKey:identifier];
     }
 }
 
-- (NSArray<NSString *> *)effectiveOrder {
+- (NSArray<NSString *> *)effectiveOrderForSide:(NSString *)side {
     NSMutableDictionary<NSString *, NSNumber *> *defaults = [NSMutableDictionary dictionary];
 
     for (TBStockItem *item in [TBStockItem catalog]) {
-        defaults[item.identifier] = @(item.defaultOrder);
+        NSString *itemSide = item.side ?: @"right";
+        if ([itemSide isEqualToString:side]) defaults[item.identifier] = @(item.defaultOrder);
     }
-    for (NSString *identifier in self.stockViews.allKeys) {
+    for (NSString *identifier in [self stockViewsForSide:side].allKeys) {
         if (!defaults[identifier]) defaults[identifier] = @(2000 + defaults.count);
     }
     for (TBPluginRecord *record in [TBPluginRegistry sharedRegistry].records) {
-        defaults[record.identifier] = @(record.defaultOrder);
+        if ([[self sideForPluginRecord:record] isEqualToString:side]) {
+            defaults[record.identifier] = @(record.defaultOrder);
+        }
     }
 
-    NSArray<NSString *> *saved = [TBPreferences order];
+    NSArray<NSString *> *saved = [side isEqualToString:@"left"] ? [TBPreferences leftOrder] : [TBPreferences rightOrder];
+    if (!saved) {
+        // Migrate the old single list on first run.
+        NSArray<NSString *> *legacy = [TBPreferences order];
+        NSMutableArray<NSString *> *filtered = [NSMutableArray array];
+        for (NSString *identifier in legacy) {
+            if ([[self sideForIdentifier:identifier] isEqualToString:side]) [filtered addObject:identifier];
+        }
+        saved = filtered;
+    }
+
     NSMutableArray<NSString *> *ordered = [NSMutableArray array];
     NSMutableSet<NSString *> *seen = [NSMutableSet set];
     for (NSString *identifier in saved) {
@@ -321,38 +387,28 @@
 }
 
 - (CGFloat)widthForEntry:(NSMutableDictionary *)entry {
-    NSString *type = entry[@"type"];
-    if ([type isEqualToString:@"stock"]) {
+    if ([entry[@"type"] isEqualToString:@"stock"]) {
         CGFloat width = 0;
         NSArray<UIView *> *views = entry[@"views"];
         for (UIView *view in views) width += view.frame.size.width;
         if (views.count > 1) width += (views.count - 1) * 2.0;
         return width;
     }
-
     UILabel *label = entry[@"label"];
     return MAX(20.0, ceil(label.bounds.size.width) + 8.0);
 }
 
-- (void)layoutItems {    UIView *contentView = self.regionContentView;
+- (void)layoutSide:(NSString *)side contentView:(UIView *)contentView {
     UIView *host = self.host ?: (self.bar.foregroundView ?: self.bar);
-    if (!contentView || !host) {
-        [self hideCustomItems];
-        return;
-    }
+    if (!contentView || !host) return;
 
-    for (NSArray<UIView *> *views in self.stockViews.allValues) {
-        for (UIView *view in views) view.hidden = YES;
-    }
-    for (UIView *container in self.pluginContainers.allValues) container.hidden = YES;
-
-    NSArray<NSString *> *order = [self effectiveOrder];
+    NSDictionary<NSString *, NSArray<UIView *> *> *stockViews = [self stockViewsForSide:side];
     NSMutableArray<NSMutableDictionary *> *entries = [NSMutableArray array];
 
-    for (NSString *identifier in order) {
+    for (NSString *identifier in [self effectiveOrderForSide:side]) {
         if (![TBPreferences isEnabledForIdentifier:identifier]) continue;
 
-        NSArray<UIView *> *views = self.stockViews[identifier];
+        NSArray<UIView *> *views = stockViews[identifier];
         if (views.count > 0) {
             NSMutableDictionary *entry = [@{
                 @"id": identifier,
@@ -367,6 +423,7 @@
         UIView *container = self.pluginContainers[identifier];
         UILabel *label = self.pluginLabels[identifier];
         if (!container || !label) continue;
+        if (![[self sideForIdentifier:identifier] isEqualToString:side]) continue;
 
         NSMutableDictionary *entry = [@{
             @"id": identifier,
@@ -378,16 +435,13 @@
         [entries addObject:entry];
     }
 
-    if (entries.count == 0) {
-        TBDebugLog(@"no enabled entries; stock groups=%@", self.stockViews.allKeys);
-        return;
-    }
+    if (entries.count == 0) return;
 
     CGRect contentFrame = [contentView convertRect:contentView.bounds toView:host];
     CGFloat contentWidth = contentFrame.size.width;
     CGFloat contentHeight = contentView.bounds.size.height;
-    CGFloat rightMargin = 2.0;
     CGFloat spacing = 6.0;
+    CGFloat startMargin = [side isEqualToString:@"left"] ? 6.0 : 2.0;
 
     NSArray<NSNumber *> *widths = [entries valueForKey:@"width"];
     CGFloat total = 0;
@@ -416,22 +470,25 @@
     }
 
     while (total > contentWidth - 4.0 && entries.count > 1) {
-        [entries removeObjectAtIndex:0];
+        if ([side isEqualToString:@"left"]) {
+            [entries removeLastObject];
+        } else {
+            [entries removeObjectAtIndex:0];
+        }
         total = 0;
         for (NSMutableDictionary *entry in entries) total += [entry[@"width"] doubleValue];
         total += spacing * (entries.count - 1);
     }
 
-    CGFloat x = contentWidth - total - rightMargin;
+    CGFloat x = [side isEqualToString:@"left"] ? startMargin : contentWidth - total - startMargin;
     if (x < 1.0) x = 1.0;
 
 #ifdef DEBUG
     NSMutableArray<NSString *> *signatureParts = [NSMutableArray array];
 #endif
     for (NSMutableDictionary *entry in entries) {
-        NSString *type = entry[@"type"];
         CGFloat width = [entry[@"width"] doubleValue];
-        if ([type isEqualToString:@"stock"]) {
+        if ([entry[@"type"] isEqualToString:@"stock"]) {
             NSArray<UIView *> *views = entry[@"views"];
             CGFloat innerX = x;
             for (NSUInteger i = 0; i < views.count; i++) {
@@ -458,27 +515,16 @@
     }
 
 #ifdef DEBUG
-    NSString *signature = [signatureParts componentsJoinedByString:@","];
-    if (self.logCount < 8 || ![signature isEqualToString:self.lastLogSignature]) {
+    NSString *signature = [NSString stringWithFormat:@"%@:%@", side, [signatureParts componentsJoinedByString:@","]];
+    if (self.logCount < 12 || ![signature isEqualToString:self.lastLogSignature]) {
         self.logCount++;
         self.lastLogSignature = signature;
-        NSMutableArray<NSString *> *groups = [NSMutableArray array];
-        [self.stockViews enumerateKeysAndObjectsUsingBlock:^(NSString *identifier, NSArray<UIView *> *views, __unused BOOL *stop) {
-            NSMutableArray *frames = [NSMutableArray array];
-            for (UIView *view in views) {
-                [frames addObject:[NSString stringWithFormat:@"%@ %.0fx%.0f", NSStringFromClass(view.class),
-                                   view.frame.size.width, view.frame.size.height]];
-            }
-            [groups addObject:[NSString stringWithFormat:@"%@[%@]", identifier, [frames componentsJoinedByString:@"; "]]];
-        }];
-        TBDebugLog(@"order self=%p bar=%p entries=%@ width=%.0f startX=%.1f stock=%@",
-                   self, self.bar, signature, contentWidth, contentWidth - total - rightMargin,
-                   [groups componentsJoinedByString:@" "]);
+        TBDebugLog(@"side=%@ order=%@ width=%.0f stock=%@", side, signature, contentWidth, stockViews.allKeys);
         for (NSString *identifier in self.pluginContainers) {
             UIView *container = self.pluginContainers[identifier];
             UILabel *label = self.pluginLabels[identifier];
-            TBDebugLog(@"  plugin %@ frame=%@ text=%@ hidden=%d",
-                       identifier, NSStringFromCGRect(container.frame), label.text, container.hidden);
+            TBDebugLog(@"  plugin %@ frame=%@ text=%@ hidden=%d", identifier,
+                       NSStringFromCGRect(container.frame), label.text, container.hidden);
         }
     }
 #endif
@@ -491,10 +537,8 @@
         UIView *container = self.pluginContainers[identifier];
         if (container.hidden) continue;
         if (!CGRectContainsPoint(container.frame, point)) continue;
-
         id<TBStatusPlugin> plugin = [[TBPluginRegistry sharedRegistry] pluginForIdentifier:identifier];
-        if ([plugin respondsToSelector:@selector(wantsTap)] && [plugin wantsTap]) return YES;
-        return NO;
+        return [plugin respondsToSelector:@selector(wantsTap)] && [plugin wantsTap];
     }
     return NO;
 }
@@ -523,22 +567,19 @@
     if (!plugin) return;
     if ([plugin respondsToSelector:@selector(wantsTap)] && ![plugin wantsTap]) return;
 
-    // The host tap gesture and the button fallback can both see the same touch.
-    // Ignore the duplicate so one tap toggles the plugin exactly once.
     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
     if ([identifier isEqualToString:self.lastTapIdentifier] && now - self.lastTapTime < 0.35) return;
     self.lastTapIdentifier = identifier;
     self.lastTapTime = now;
 
     if ([plugin respondsToSelector:@selector(handleTap)]) {
-        TBDebugLog(@"tap %@", identifier);
         @try {
             [plugin handleTap];
         } @catch (NSException *exception) {
             TBDebugLog(@"plugin tap threw: %@", exception.reason);
         }
         [self syncPluginContainers];
-        [self layoutItems];
+        [self update];
     }
 }
 

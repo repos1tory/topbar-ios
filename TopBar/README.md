@@ -1,9 +1,9 @@
 # TopBar
 
 TopBar is the generalized version of RateBar: a small status-bar item host that
-owns the right-side row on iPadOS, plus separate plugin dylibs for individual
-items. It can reorder and hide stock status-bar items and installed plugins from
-one Settings pane.
+owns the left and right status-bar rows on iPadOS, plus separate plugin dylibs
+for individual items. It can reorder and hide stock status-bar items and
+installed plugins from one Settings pane.
 
 Installed packages:
 
@@ -17,13 +17,17 @@ Installed packages:
 ## Use
 
 1. Open **Settings → TopBar** (near the bottom of the Settings root list).
-2. Tap **Edit** to drag items into bar order. The list is left-to-right.
+2. Tap **Edit** to drag items into bar order. The list has **Left Side** and
+   **Right Side** sections; drag a plugin between sections to move it to that
+   side.
 3. Use the switches to show/hide stock items and plugins. Changes apply to
    SpringBoard immediately.
 4. Tap the IP item in the status bar to switch local/public. The public lookup
    uses `https://api.ipify.org` and is cached for five minutes.
 
-The left-side time/date are owned by iOS and are not moved by this version.
+The left side groups **Time & Date** as one stock item; it can be hidden or
+reordered with left-side plugins. The clock and date are not split into two
+separate items in this version.
 
 ## Scope
 
@@ -42,7 +46,8 @@ A plugin is a normal SpringBoard tweak dylib plus a manifest:
   `TBStatusPlugin` in `src/TopBar/TBStatusPlugin.h`.
 - The package installs a manifest at
   `/var/jb/Library/TopBar/Plugins/<identifier>.plist` with `Identifier`,
-  `Name`, `Description`, `Version`, `Author`, and `DefaultOrder`.
+  `Name`, `Description`, `Version`, `Author`, `DefaultOrder`, and optionally
+  `Side` (`left` or `right`). The protocol may also implement `pluginSide`.
 - After installing a plugin package, respring once so SpringBoard loads the
   dylib. The manifest appears in Settings immediately; the host shows it as
   “respring to load” until the class is available.
@@ -57,6 +62,7 @@ Minimal protocol:
 @optional
 - (BOOL)wantsTap;
 - (void)handleTap;
+- (NSString *)pluginSide;         // optional: @"left" or @"right"
 ```
 
 See `plugins/battery` and `plugins/ip` for complete examples.

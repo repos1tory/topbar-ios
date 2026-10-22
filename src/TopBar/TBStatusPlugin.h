@@ -29,4 +29,7 @@
 - (NSString *)pluginVersion;
 - (NSString *)pluginAuthor;
 
+/// Optional. Return @"left" or @"right". Defaults to right.
+- (NSString *)pluginSide;
+
 @end

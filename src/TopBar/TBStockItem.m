@@ -7,6 +7,7 @@
 
 + (NSArray<TBStockItem *> *)fallbackCatalog {
     NSArray<NSDictionary *> *rows = @[
+        @{ @"Identifier": @"stock.timeDate", @"Name": @"Time & Date", @"DefaultOrder": @5, @"Side": @"left", @"Description": @"System clock and date" },
         @{ @"Identifier": @"stock.wifi", @"Name": @"Wi-Fi", @"DefaultOrder": @10, @"Description": @"System Wi-Fi indicator" },
         @{ @"Identifier": @"stock.vpn", @"Name": @"VPN", @"DefaultOrder": @20, @"Description": @"System VPN indicator" },
         @{ @"Identifier": @"stock.rotation", @"Name": @"Rotation Lock", @"DefaultOrder": @30, @"Description": @"System rotation lock" },
@@ -25,6 +26,7 @@
         item.identifier = row[@"Identifier"];
         item.name = row[@"Name"];
         item.detail = row[@"Description"];
+        item.side = row[@"Side"] ?: @"right";
         item.defaultOrder = [row[@"DefaultOrder"] integerValue];
         [items addObject:item];
     }
@@ -50,6 +52,7 @@
             item.identifier = identifier;
             item.name = [row[@"Name"] isKindOfClass:[NSString class]] ? row[@"Name"] : identifier;
             item.detail = [row[@"Description"] isKindOfClass:[NSString class]] ? row[@"Description"] : @"System item";
+            item.side = [row[@"Side"] isKindOfClass:[NSString class]] ? row[@"Side"] : @"right";
             item.defaultOrder = [row[@"DefaultOrder"] integerValue];
             [items addObject:item];
         }
@@ -61,6 +64,9 @@
 + (NSString *)identifierForDisplayItemIdentifier:(NSString *)identifier {
     if (![identifier isKindOfClass:[NSString class]] || identifier.length == 0) return nil;
     if ([identifier containsString:@"SpacerItem"]) return nil;
+    if ([identifier containsString:@"TimeItem"] ||
+        [identifier containsString:@"DateTimeItem"] ||
+        [identifier containsString:@"DateItem"]) return @"stock.timeDate";
     if ([identifier containsString:@"BatteryItem"]) return @"stock.battery";
     if ([identifier containsString:@"WifiItem"]) return @"stock.wifi";
     if ([identifier containsString:@"VPNItem"]) return @"stock.vpn";
@@ -114,6 +120,13 @@
     if ([title hasPrefix:@"stock."]) title = [title substringFromIndex:6];
     if (title.length == 0) return @"System";
     return [title stringByReplacingOccurrencesOfString:@"." withString:@" "];
+}
+
++ (NSString *)sideForIdentifier:(NSString *)identifier {
+    for (TBStockItem *item in [self catalog]) {
+        if ([item.identifier isEqualToString:identifier]) return item.side ?: @"right";
+    }
+    return nil;
 }
 
 @end

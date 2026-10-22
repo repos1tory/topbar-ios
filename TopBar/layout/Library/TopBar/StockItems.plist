@@ -3,6 +3,13 @@
 <plist version="1.0">
 <array>
     <dict>
+        <key>Identifier</key><string>stock.timeDate</string>
+        <key>Name</key><string>Time &amp; Date</string>
+        <key>Description</key><string>System clock and date</string>
+        <key>Side</key><string>left</string>
+        <key>DefaultOrder</key><integer>5</integer>
+    </dict>
+    <dict>
         <key>Identifier</key><string>stock.wifi</string>
         <key>Name</key><string>Wi-Fi</string>
         <key>Description</key><string>System Wi-Fi indicator</string>

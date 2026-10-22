@@ -11,3 +11,6 @@ static NSString *const TBPluginRegistryDidChangeNotificationName = @"TBPluginReg
 
 static NSString *const TBOrderKey = @"Order";
 static NSString *const TBEnabledKey = @"Enabled";
+static NSString *const TBLeftOrderKey = @"LeftOrder";
+static NSString *const TBRightOrderKey = @"RightOrder";
+static NSString *const TBSidesKey = @"Sides";

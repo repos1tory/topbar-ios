@@ -1,6 +1,10 @@
 #import "TBPreferences.h"
 #import "TBHost.h"
 
+@interface TBPreferences ()
++ (NSArray<NSString *> *)stringArrayForKey:(NSString *)key;
+@end
+
 static NSString *TBPreferencesPath(void) {
     return @"/var/mobile/Library/Preferences/com.alsinas.topbar.plist";
 }
@@ -41,7 +45,11 @@ static BOOL TBWriteDictionary(NSDictionary *dictionary, NSString *path) {
 }
 
 + (NSArray<NSString *> *)order {
-    id value = [self objectForKey:TBOrderKey];
+    return [self stringArrayForKey:TBOrderKey];
+}
+
++ (NSArray<NSString *> *)stringArrayForKey:(NSString *)key {
+    id value = [self objectForKey:key];
     if (![value isKindOfClass:[NSArray class]]) return nil;
 
     NSMutableArray<NSString *> *order = [NSMutableArray array];
@@ -51,6 +59,27 @@ static BOOL TBWriteDictionary(NSDictionary *dictionary, NSString *path) {
         }
     }
     return order;
+}
+
++ (NSArray<NSString *> *)leftOrder {
+    return [self stringArrayForKey:TBLeftOrderKey];
+}
+
++ (NSArray<NSString *> *)rightOrder {
+    return [self stringArrayForKey:TBRightOrderKey];
+}
+
++ (NSDictionary<NSString *, NSString *> *)sides {
+    id value = [self objectForKey:TBSidesKey];
+    if (![value isKindOfClass:[NSDictionary class]]) return @{};
+
+    NSMutableDictionary<NSString *, NSString *> *sides = [NSMutableDictionary dictionary];
+    [(NSDictionary *)value enumerateKeysAndObjectsUsingBlock:^(id key, id obj, __unused BOOL *stop) {
+        if ([key isKindOfClass:[NSString class]] && [obj isKindOfClass:[NSString class]]) {
+            sides[key] = obj;
+        }
+    }];
+    return sides;
 }
 
 + (NSDictionary<NSString *, NSNumber *> *)enabled {
@@ -73,6 +102,18 @@ static BOOL TBWriteDictionary(NSDictionary *dictionary, NSString *path) {
 
 + (void)setOrder:(NSArray<NSString *> *)order {
     [self setObject:order ?: @[] forKey:TBOrderKey];
+}
+
++ (void)setLeftOrder:(NSArray<NSString *> *)order {
+    [self setObject:order ?: @[] forKey:TBLeftOrderKey];
+}
+
++ (void)setRightOrder:(NSArray<NSString *> *)order {
+    [self setObject:order ?: @[] forKey:TBRightOrderKey];
+}
+
++ (void)setSides:(NSDictionary<NSString *, NSString *> *)sides {
+    [self setObject:sides ?: @{} forKey:TBSidesKey];
 }
 
 + (void)setEnabled:(NSDictionary<NSString *, NSNumber *> *)enabled {

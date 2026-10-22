@@ -8,6 +8,7 @@
 @property (nonatomic, copy) NSString *detail;
 @property (nonatomic, copy) NSString *version;
 @property (nonatomic, copy) NSString *author;
+@property (nonatomic, copy) NSString *side;
 @property (nonatomic, assign) NSInteger defaultOrder;
 @property (nonatomic, assign) BOOL loaded;
 @property (nonatomic, strong) id<TBStatusPlugin> plugin;

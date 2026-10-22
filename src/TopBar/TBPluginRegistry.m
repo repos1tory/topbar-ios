@@ -104,6 +104,7 @@ static NSString *TBStringValue(NSDictionary *dictionary, NSString *key, NSString
         record.detail = TBStringValue(manifest, @"Description", @"Plugin");
         record.version = TBStringValue(manifest, @"Version", @"");
         record.author = TBStringValue(manifest, @"Author", @"");
+        record.side = [TBStringValue(manifest, @"Side", @"right") lowercaseString];
         record.defaultOrder = [manifest[@"DefaultOrder"] integerValue] ?: (1000 + index);
         record.loaded = NO;
         records[identifier] = record;
@@ -132,6 +133,14 @@ static NSString *TBStringValue(NSDictionary *dictionary, NSString *key, NSString
         if (record.author.length == 0) {
             @try { record.author = [plugin pluginAuthor] ?: @""; } @catch (__unused NSException *e) {}
         }
+        if (record.side.length == 0) {
+            @try {
+                NSString *side = [plugin respondsToSelector:@selector(pluginSide)] ? [plugin pluginSide] : nil;
+                record.side = [side isKindOfClass:[NSString class]] && side.length > 0 ? side.lowercaseString : @"right";
+            } @catch (__unused NSException *e) {
+                record.side = @"right";
+            }
+        }
     }];
 
     NSArray<TBPluginRecord *> *sorted = [records.allValues sortedArrayUsingComparator:^NSComparisonResult(TBPluginRecord *a, TBPluginRecord *b) {
@@ -148,6 +157,7 @@ static NSString *TBStringValue(NSDictionary *dictionary, NSString *key, NSString
             @"Description": record.detail ?: @"Plugin",
             @"Version": record.version ?: @"",
             @"Author": record.author ?: @"",
+            @"Side": record.side ?: @"right",
             @"DefaultOrder": @(record.defaultOrder),
             @"Loaded": @(record.loaded),
         }];
