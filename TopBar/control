@@ -1,0 +1,11 @@
+Package: com.alsinas.topbar
+Name: TopBar
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: A plugin-based status bar customizer. Reorder and hide stock status bar items and install additional items as plugins.
+Maintainer: alsinas
+Author: alsinas
+Section: Tweaks
+Depends: ellekit (>= 1.2), firmware (>= 15.0), preferenceloader
+Conflicts: com.alsinas.ratebar
+Replaces: com.alsinas.ratebar

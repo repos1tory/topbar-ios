@@ -1,0 +1,9 @@
+Package: com.alsinas.prefprobe
+Name: PrefProbe
+Version: 0.0.1
+Architecture: iphoneos-arm64
+Description: Temporary Preferences probe.
+Maintainer: alsinas
+Author: alsinas
+Section: Tweaks
+Depends: ellekit (>= 1.2), firmware (>= 15.0)

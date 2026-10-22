@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Identifier</key><string>battery.rate</string>
+    <key>Name</key><string>Battery Rate</string>
+    <key>Description</key><string>Signed charge/drain watts and time estimate</string>
+    <key>Version</key><string>0.1.0</string>
+    <key>Author</key><string>alsinas</string>
+    <key>DefaultOrder</key><integer>100</integer>
+</dict>
+</plist>

@@ -1,0 +1,9 @@
+Package: com.alsinas.topbar.ip
+Name: TopBar IP Address
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: Local/public IP address item for TopBar. Tap to switch.
+Maintainer: alsinas
+Author: alsinas
+Section: Tweaks
+Depends: com.alsinas.topbar (>= 0.1.0), ellekit (>= 1.2), firmware (>= 15.0)

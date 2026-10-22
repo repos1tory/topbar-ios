@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+    <dict>
+        <key>Identifier</key><string>stock.wifi</string>
+        <key>Name</key><string>Wi-Fi</string>
+        <key>Description</key><string>System Wi-Fi indicator</string>
+        <key>DefaultOrder</key><integer>10</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.vpn</string>
+        <key>Name</key><string>VPN</string>
+        <key>Description</key><string>System VPN indicator</string>
+        <key>DefaultOrder</key><integer>20</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.rotation</string>
+        <key>Name</key><string>Rotation Lock</string>
+        <key>Description</key><string>System rotation lock</string>
+        <key>DefaultOrder</key><integer>30</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.airplay</string>
+        <key>Name</key><string>AirPlay</string>
+        <key>Description</key><string>System AirPlay indicator</string>
+        <key>DefaultOrder</key><integer>35</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.carplay</string>
+        <key>Name</key><string>CarPlay</string>
+        <key>Description</key><string>System CarPlay indicator</string>
+        <key>DefaultOrder</key><integer>36</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.cellular</string>
+        <key>Name</key><string>Cellular</string>
+        <key>Description</key><string>System cellular signal</string>
+        <key>DefaultOrder</key><integer>40</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.focus</string>
+        <key>Name</key><string>Focus</string>
+        <key>Description</key><string>System Focus indicator</string>
+        <key>DefaultOrder</key><integer>50</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.alarm</string>
+        <key>Name</key><string>Alarm</string>
+        <key>Description</key><string>System alarm indicator</string>
+        <key>DefaultOrder</key><integer>60</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.location</string>
+        <key>Name</key><string>Location</string>
+        <key>Description</key><string>System location indicator</string>
+        <key>DefaultOrder</key><integer>70</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.bluetooth</string>
+        <key>Name</key><string>Bluetooth</string>
+        <key>Description</key><string>System Bluetooth indicator</string>
+        <key>DefaultOrder</key><integer>80</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.airplane</string>
+        <key>Name</key><string>Airplane Mode</string>
+        <key>Description</key><string>System airplane mode indicator</string>
+        <key>DefaultOrder</key><integer>90</integer>
+    </dict>
+    <dict>
+        <key>Identifier</key><string>stock.battery</string>
+        <key>Name</key><string>Battery</string>
+        <key>Description</key><string>System battery icon and percentage</string>
+        <key>DefaultOrder</key><integer>120</integer>
+    </dict>
+</array>
+</plist>
