@@ -1,0 +1,9 @@
+Package: com.alsinas.topbar.sessions
+Name: TopBar OpenCode Sessions
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: Number of running OpenCode sessions for TopBar.
+Maintainer: alsinas
+Author: alsinas
+Section: Tweaks
+Depends: com.alsinas.topbar (>= 0.1.0), ellekit (>= 1.2), firmware (>= 15.0)

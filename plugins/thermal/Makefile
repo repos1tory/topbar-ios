@@ -8,6 +8,7 @@ TWEAK_NAME := TopBarThermal
 TopBarThermal_FILES := Tweak.xm
 TopBarThermal_CFLAGS := -fobjc-arc -Wall -Wextra -Wno-deprecated-declarations -I../../src/TopBar
 TopBarThermal_FRAMEWORKS := Foundation
+TopBarThermal_PRIVATE_FRAMEWORKS := IOKit
 TopBarThermal_LIBRARIES := substrate
 INSTALL_TARGET_PROCESSES := SpringBoard
 

@@ -2,7 +2,7 @@ Package: com.alsinas.topbar.thermal
 Name: TopBar Thermal
 Version: 0.1.0
 Architecture: iphoneos-arm64
-Description: Thermal pressure state item for TopBar.
+Description: Battery temperature in Celsius item for TopBar.
 Maintainer: alsinas
 Author: alsinas
 Section: Tweaks

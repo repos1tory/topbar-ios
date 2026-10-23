@@ -23,13 +23,13 @@ else
 fi
 
 make -C "$BUILD/TopBar" package "${MAKE_FLAGS[@]}" SHELL=/var/jb/bin/bash
-for plugin in battery ip network weather cpu ram thermal disk; do
+for plugin in battery ip network weather cpu ram thermal disk sessions; do
     make -C "$BUILD/plugins/$plugin" package "${MAKE_FLAGS[@]}" SHELL=/var/jb/bin/bash
 done
 
 mkdir -p "$ROOT/packages"
 cp "$BUILD"/TopBar/packages/com.alsinas.topbar_*.deb "$ROOT/packages/"
-for plugin in battery ip network weather cpu ram thermal disk; do
+for plugin in battery ip network weather cpu ram thermal disk sessions; do
     cp "$BUILD"/plugins/$plugin/packages/com.alsinas.topbar.*_*.deb "$ROOT/packages/"
 done
 

@@ -4,7 +4,7 @@
 <dict>
     <key>Identifier</key><string>thermal.state</string>
     <key>Name</key><string>Thermal</string>
-    <key>Description</key><string>System thermal pressure state</string>
+    <key>Description</key><string>Battery temperature in Celsius</string>
     <key>Version</key><string>0.1.0</string>
     <key>Author</key><string>alsinas</string>
     <key>Side</key><string>right</string>

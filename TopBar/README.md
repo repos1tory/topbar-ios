@@ -16,8 +16,9 @@ Installed packages:
 - Additional items: `com.alsinas.topbar.network` (↓/↑ throughput),
   `com.alsinas.topbar.weather` (temperature + condition),
   `com.alsinas.topbar.cpu` (CPU load), `com.alsinas.topbar.ram` (memory usage),
-  `com.alsinas.topbar.thermal` (thermal pressure), and
-  `com.alsinas.topbar.disk` (free/total storage).
+  `com.alsinas.topbar.thermal` (battery temperature in °C), and
+  `com.alsinas.topbar.disk` (free/total storage). Also
+  `com.alsinas.topbar.sessions` (running OpenCode sessions).
 
 ## Use
 
