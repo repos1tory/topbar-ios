@@ -18,7 +18,10 @@ Installed packages:
   `com.alsinas.topbar.cpu` (CPU load), `com.alsinas.topbar.ram` (memory usage),
   `com.alsinas.topbar.thermal` (battery temperature in °C), and
   `com.alsinas.topbar.disk` (free/total storage). Also
-  `com.alsinas.topbar.sessions` (running OpenCode sessions).
+  `com.alsinas.topbar.sessions` (running OpenCode sessions),
+  `com.alsinas.topbar.batteryhealth` (health/cycles/adapter watts),
+  `com.alsinas.topbar.sunmoon` (sunrise/sunset/moon), and
+  `com.alsinas.topbar.uptime` (time since boot).
 
 ## Use
 
