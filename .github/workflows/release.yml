@@ -24,8 +24,8 @@ jobs:
       publish: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.publish == 'true' }}
       build_command: |
         rm -rf TopBar/packages plugins/*/packages
-        make -C TopBar package FINALPACKAGE=1
-        for d in plugins/*/; do make -C "$d" package FINALPACKAGE=1; done
+        make -C TopBar package FINALPACKAGE=1 TARGET=iphone:clang:latest:15.0
+        for d in plugins/*/; do make -C "$d" package FINALPACKAGE=1 TARGET=iphone:clang:latest:15.0; done
       deb_glob: "**/packages/*.deb"
       group: tweaks
       theos: true
