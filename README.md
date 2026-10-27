@@ -1,11 +1,11 @@
-# RateBar
+# TopBar
 
-> **TopBar branch:** this branch generalizes RateBar into a plugin-based status
-> bar customizer. The deliverable is now `com.alsinas.topbar` plus the
-> `com.alsinas.topbar.battery` and `com.alsinas.topbar.ip` plugin packages.
-> See [TopBar/README.md](TopBar/README.md) for the host, Settings pane, plugin
-> API, and the one-command build/install script. The original RateBar package is
-> replaced by TopBar and conflicts with it.
+TopBar is a plugin-based iPadOS status-bar customizer, evolved from the original
+single-purpose RateBar tweak. The host package replaces `com.alsinas.ratebar`;
+the battery plugin preserves RateBar's charge/drain readout.
+
+See [TopBar/README.md](TopBar/README.md) for the host, Settings pane, plugin
+API, package list, and the one-command build/install script.
 
 A single signed number and an estimated time beside the iPad status bar battery
 percentage:

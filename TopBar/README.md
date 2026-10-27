@@ -1,5 +1,7 @@
 # TopBar
 
+Source: [repos1tory/topbar-ios](https://github.com/repos1tory/topbar-ios).
+
 TopBar is the generalized version of RateBar: a small status-bar item host that
 owns the left and right status-bar rows on iPadOS, plus separate plugin dylibs
 for individual items. It can reorder and hide stock status-bar items and
